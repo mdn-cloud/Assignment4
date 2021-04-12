@@ -39,7 +39,11 @@ public interface MyConstants {
     public static final String ORDERLINE_RESOURCE_NAME =  "orderLine";
     public static final String PRODUCT_RESOURCE_NAME =  "product";
     public static final String BLOODBANK_RESOURCE_NAME =  "bloodbank";
+    public static final String BLOOD_DONATION_RESOURCE_NAME =  "bloodDonation";
+    public static final String DONATION_RECORD_RESOURCE_NAME =  "donationRecord";
     public static final String CUSTOMER_ADDRESS_SUBRESOURCE_NAME =  "address";
+    public static final String PHONE_RESOURCE_NAME =  "phone";
+    public static final String ADDRESS_RESOURCE_NAME =  "address";
     public static final String CUSTOMER_ADDRESS_RESOURCE_PATH =
         RESOURCE_PATH_ID_PATH + SLASH + CUSTOMER_ADDRESS_SUBRESOURCE_NAME;
 
@@ -73,5 +77,7 @@ public interface MyConstants {
     //JPA constants
     public static final String PU_NAME = "bloodbank-PU";
     public static final String PARAM1 = "param1";
+    public static final String PARAM2 = "param2";
+    public static final String PARAM3 = "param3";
 
 }

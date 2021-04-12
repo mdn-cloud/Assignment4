@@ -15,6 +15,7 @@ import static bloodbank.entity.SecurityUser.USER_FOR_OWNING_PERSON_QUERY;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Access;
@@ -49,8 +50,8 @@ import bloodbank.rest.serializer.SecurityRoleSerializer;
 @Access(AccessType.FIELD)
 @Table(name = "security_user")
 @NamedQueries({
-    @NamedQuery(name = USER_FOR_OWNING_PERSON_QUERY, query = "SELECT u FROM SecurityUser u WHERE u.person.id = :param1"),
-    @NamedQuery(name = SECURITY_USER_BY_NAME_QUERY, query = "SELECT u FROM SecurityUser u WHERE u.username = :param1")})
+    @NamedQuery(name = USER_FOR_OWNING_PERSON_QUERY, query = "SELECT u FROM SecurityUser u left JOIN FETCH u.person p left JOIN FETCH p.donations WHERE u.person.id = :param1"),
+    @NamedQuery(name = SECURITY_USER_BY_NAME_QUERY, query = "SELECT u FROM SecurityUser u left JOIN FETCH u.person p left JOIN FETCH p.donations WHERE u.username = :param1")})
 public class SecurityUser implements Serializable, Principal {
     /** explicit set serialVersionUID */
     private static final long serialVersionUID = 1L;
@@ -77,7 +78,7 @@ public class SecurityUser implements Serializable, Principal {
     @ManyToMany( cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.LAZY)
     @JoinTable(name = "user_has_role", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
     inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id"))
-    protected Set<SecurityRole> roles;
+    protected Set<SecurityRole> roles = new HashSet<>();
 
     public SecurityUser() {
         super();

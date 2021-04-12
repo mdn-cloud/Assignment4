@@ -10,8 +10,7 @@
  */
 package bloodbank.ejb;
 
-import static bloodbank.entity.BloodBank.ALL_BLOODBANKS_QUERY_NAME;
-import static bloodbank.entity.Person.ALL_PERSONS_QUERY_NAME;
+import static bloodbank.entity.Person.GET_PERSON_BY_ID_QUERY_NAME;
 import static bloodbank.entity.SecurityRole.ROLE_BY_NAME_QUERY;
 import static bloodbank.entity.SecurityUser.USER_FOR_OWNING_PERSON_QUERY;
 import static bloodbank.utility.MyConstants.DEFAULT_KEY_SIZE;
@@ -21,6 +20,8 @@ import static bloodbank.utility.MyConstants.DEFAULT_SALT_SIZE;
 import static bloodbank.utility.MyConstants.DEFAULT_USER_PASSWORD;
 import static bloodbank.utility.MyConstants.DEFAULT_USER_PREFIX;
 import static bloodbank.utility.MyConstants.PARAM1;
+import static bloodbank.utility.MyConstants.PARAM2;
+import static bloodbank.utility.MyConstants.PARAM3;
 import static bloodbank.utility.MyConstants.PROPERTY_ALGORITHM;
 import static bloodbank.utility.MyConstants.PROPERTY_ITERATIONS;
 import static bloodbank.utility.MyConstants.PROPERTY_KEYSIZE;
@@ -29,7 +30,6 @@ import static bloodbank.utility.MyConstants.PU_NAME;
 import static bloodbank.utility.MyConstants.USER_ROLE;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,22 +37,15 @@ import java.util.Map;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import javax.security.enterprise.identitystore.Pbkdf2PasswordHash;
 import javax.transaction.Transactional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.hibernate.Hibernate;
-
 import bloodbank.entity.Address;
-import bloodbank.entity.BloodBank;
-import bloodbank.entity.BloodDonation;
 import bloodbank.entity.Person;
+import bloodbank.entity.Phone;
 import bloodbank.entity.SecurityRole;
 import bloodbank.entity.SecurityUser;
 
@@ -64,26 +57,101 @@ import bloodbank.entity.SecurityUser;
 public class BloodBankService implements Serializable {
     private static final long serialVersionUID = 1L;
     
-    private static final Logger LOG = LogManager.getLogger();
-    
     @PersistenceContext(name = PU_NAME)
     protected EntityManager em;
     @Inject
     protected Pbkdf2PasswordHash pbAndjPasswordHash;
-
-    public List<Person> getAllPeople() {
-    	return null;
+    
+    public <T> List<T> getAll(String queryName, Class<T> entityType) {
+    	TypedQuery<T> findAll = em.createNamedQuery(queryName, entityType);
+        return findAll.getResultList();
     }
-
-    public Person getPersonId(int id) {
-    	return null;
+    
+    public <T> T getById(int id, String queryName, Class<T> entityType) {
+    	T entity;
+    	try {
+    		TypedQuery<T> findEntity = em
+                    .createNamedQuery(queryName, entityType)
+                    .setParameter(PARAM1, id);
+       	 entity = findEntity.getSingleResult();
+    	} catch (NoResultException ex) {
+    		entity = null;
+    	}
+    	return entity; 
     }
-
+    
+    public boolean isDuplicated(String queryName, String searchParam) {
+    	TypedQuery<Long> duplicateQuery = em.createNamedQuery(queryName, Long.class);
+    	duplicateQuery.setParameter(PARAM1, searchParam);	
+    	return duplicateQuery.getSingleResult() != 0;			
+    }
+    
+    public boolean isPhoneDuplicated(Phone phone) {
+    	TypedQuery<Long> duplicateQuery = em.createNamedQuery(Phone.IS_DUPLICATE_QUERY_NAME, Long.class);
+    	duplicateQuery.setParameter(PARAM1, phone.getCountryCode());	
+    	duplicateQuery.setParameter(PARAM2, phone.getAreaCode());	
+    	duplicateQuery.setParameter(PARAM3, phone.getNumber());	
+    	return duplicateQuery.getSingleResult() != 0;
+    }
+    
     @Transactional
-    public Person persistPerson(Person newPerson) {
-    	return null;
+    public <T> T persistEntity(T entity) {
+    	try {
+    		em.persist(entity);
+    	} catch (Exception ex) {
+    		return null;
+    	}
+    	return entity;
     }
-
+    
+    @Transactional
+    public <T> T updateEntity(int id, T entityWithUpdates, String queryName, Class<T> entityType ) {
+        T entityToBeUpdated = getById(id, queryName, entityType);
+        if (entityToBeUpdated != null) {
+            em.refresh(entityToBeUpdated);
+            em.merge(entityWithUpdates);
+            em.flush();
+        }
+        return entityToBeUpdated;
+    }
+    
+    // Generic delete by entity method. Only for entities that dont need extra delete logic
+    @Transactional
+    public <T> boolean deleteEntity(int id, String getByIdQueryName, Class<T> entityType) {
+        T entity = getById(id, getByIdQueryName, entityType);
+        if (entity != null) {
+//            em.refresh(entity);
+            em.remove(entity);
+            return true;
+        } else {
+        	return false;
+        }
+    }
+    
+    @Transactional
+    public boolean deletePhone(int id) {
+        Phone phoneToDelete = getById(id, Phone.GET_PHONE_BY_ID_QUERY_NAME, Phone.class);
+        if (phoneToDelete != null) {
+        	phoneToDelete.getContacts().forEach((contact) -> em.remove(contact));
+            em.remove(phoneToDelete);
+            return true;
+        } else {
+        	return false;
+        }
+    }
+    
+    @Transactional
+    public boolean deleteAddress(int id) {
+        Address addressToDelete = getById(id, Address.GET_ADDRESS_BY_ID_QUERY_NAME, Address.class);
+        if (addressToDelete != null) {
+        	addressToDelete.getContacts().forEach((contact) -> em.remove(contact));
+            em.remove(addressToDelete);
+            return true;
+        } else {
+        	return false;
+        }
+    }
+    
     @Transactional
     public void buildUserForNewPerson(Person newPerson) {
         SecurityUser userForNewPerson = new SecurityUser();
@@ -100,42 +168,26 @@ public class BloodBankService implements Serializable {
         userForNewPerson.setPerson(newPerson);
         SecurityRole userRole = em.createNamedQuery(ROLE_BY_NAME_QUERY, SecurityRole.class)
             .setParameter(PARAM1, USER_ROLE).getSingleResult();
+        
         userForNewPerson.getRoles().add(userRole);
         userRole.getUsers().add(userForNewPerson);
+
         em.persist(userForNewPerson);
     }
 
     @Transactional
     public Person setAddressFor(int id, Address newAddress) {
+//    	Person personToUpdate = getPersonId(id);
+//    	Contact []contacts =  (Contact[]) personToUpdate.getContacts().toArray();
+//    	contacts[0].setAddress(newAddress);
+//    	em.merge(contacts);
+//    	return personToUpdate;
     	return null;
     }
-
-    /**
-     * to update a person
-     * 
-     * @param id - id of entity to update
-     * @param personWithUpdates - entity with updated information
-     * @return Entity with updated information
-     */
+    
     @Transactional
-    public Person updatePersonById(int id, Person personWithUpdates) {
-        Person personToBeUpdated = getPersonId(id);
-        if (personToBeUpdated != null) {
-            em.refresh(personToBeUpdated);
-            em.merge(personWithUpdates);
-            em.flush();
-        }
-        return personToBeUpdated;
-    }
-
-    /**
-     * to delete a person by id
-     * 
-     * @param id - person id to delete
-     */
-    @Transactional
-    public void deletePersonById(int id) {
-        Person person = getPersonId(id);
+    public boolean deletePersonById(int id) {
+        Person person = getById(id, GET_PERSON_BY_ID_QUERY_NAME, Person.class);
         if (person != null) {
             em.refresh(person);
             TypedQuery<SecurityUser> findUser = em
@@ -144,6 +196,11 @@ public class BloodBankService implements Serializable {
             SecurityUser sUser = findUser.getSingleResult();
             em.remove(sUser);
             em.remove(person);
+            return true;
+        } else {
+        	return false;
         }
     }
+    
+
 }

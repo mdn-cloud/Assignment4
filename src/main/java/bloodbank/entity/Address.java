@@ -17,33 +17,25 @@ import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * The persistent class for the address database table.
  */
-//Hint - @Entity marks this class as an entity which needs to be mapped by JPA.
-//Hint - @Entity does not need a name if the name of the class is sufficient.
-//Hint - @Entity name does not matter as long as it is consistent across the code.
 @Entity
-//Hint - @Table defines a specific table on DB which is mapped to this entity.
 @Table( name = "address")
-//Hint - @NamedQuery attached to this class which uses JPQL/HQL. SQL cannot be used with NamedQuery.
-//Hint - @NamedQuery uses the name which is defined in @Entity for JPQL, if no name is defined use class name.
-//Hint - @NamedNativeQuery can optionally be used if there is a need for SQL query.
-@NamedQuery( name = "Address.findAll", query = "SELECT a FROM Address a")
-//Hint - @AttributeOverride can overrides column details. This Entity uses address_id as its primary key name, it needs to override the name in the mapped super class.
+@NamedQuery( name = Address.ALL_ADRESSES_QUERY_NAME, query = "SELECT a FROM Address a")
+@NamedQuery( name = Address.GET_ADDRESS_BY_ID_QUERY_NAME, query = "SELECT a FROM Address a where a.id = :param1")
+@NamedQuery( name = Address.IS_DUPLICATE_QUERY_NAME, query = "SELECT count(a) FROM Address a where a.zipcode = :param1")
 @AttributeOverride( name = "id", column = @Column( name = "address_id"))
-//Hint - PojoBase is inherited by any entity with integer as their primary key.
-//Hint - PojoBaseCompositeKey is inherited by any entity with a composite key as their primary key.
 public class Address extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
+	
+	public static final String ALL_ADRESSES_QUERY_NAME = "Address.findAll";
+	public static final String GET_ADDRESS_BY_ID_QUERY_NAME = "Address.findById";
+	public static final String IS_DUPLICATE_QUERY_NAME = "Address.isDuplicate";
 
-	// Hint - @Basic( optional = false) is used when the object cannot be null.
-	// Hint - @Basic or none can be used if the object can be null.
-	// Hint - @Basic is for checking the state of object at the scope of our code.
 	@Basic( optional = false)
-	// Hint - @Column is used to define the details of the column which this object will map to.
-	// Hint - @Column is for mapping and creation (if needed) of an Object to DB.
-	// Hint - @Column can also be used to define a specific name for the column if it is different than our object name.
 	@Column( name = "street_number", nullable = false, length = 10)
 	private String streetNumber;
 
@@ -78,6 +70,7 @@ public class Address extends PojoBase implements Serializable {
 //	@JoinColumn( name = "address_id", referencedColumnName = "address_id", insertable = false, updatable = false)
 	// Hint - java.util.Set is used as a collection, however List could have been used as well.
 	// Hint - java.util.Set will be unique and also possibly can provide better get performance with HashCode.
+	@JsonIgnore
 	private Set< Contact> contacts = new HashSet<>();
 
 	public Address() {

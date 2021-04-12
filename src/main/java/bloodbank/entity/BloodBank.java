@@ -1,6 +1,7 @@
 package bloodbank.entity;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -21,9 +22,11 @@ import javax.persistence.Transient;
 import org.hibernate.Hibernate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import bloodbank.rest.serializer.BloodBankSerializer;
+import bloodbank.rest.serializer.BloodBankDeserializer;
 
 /**
  * The persistent class for the blood_bank database table.
@@ -31,15 +34,20 @@ import bloodbank.rest.serializer.BloodBankSerializer;
 @Entity
 @Table( name = "blood_bank")
 @NamedQuery( name = BloodBank.ALL_BLOODBANKS_QUERY_NAME, query = "SELECT distinct b FROM BloodBank b left JOIN FETCH b.donations")
+@NamedQuery( name = BloodBank.GET_BLOODBANK_BY_ID_QUERY_NAME, query = "SELECT distinct b FROM BloodBank b left JOIN FETCH b.donations where b.id=:param1")
+@NamedQuery( name = BloodBank.IS_DUPLICATE_QUERY_NAME, query = "SELECT count(b) FROM BloodBank b where b.name=:param1")
 @Inheritance( strategy = InheritanceType.SINGLE_TABLE)
 @AttributeOverride( name = "id", column = @Column( name = "bank_id"))
 //columnDefinition, discriminatorType
 @DiscriminatorColumn( columnDefinition = "bit(1)", name = "privately_owned", discriminatorType = DiscriminatorType.INTEGER)
 @JsonSerialize(using = BloodBankSerializer.class)
+@JsonDeserialize(using = BloodBankDeserializer.class)
 public abstract class BloodBank extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String ALL_BLOODBANKS_QUERY_NAME = "BloodBank.findAll";
+	public static final String GET_BLOODBANK_BY_ID_QUERY_NAME = "BloodBank.findById";
+	public static final String IS_DUPLICATE_QUERY_NAME = "BloodBank.isDuplicate";
 	public static final String DONATION_COUNT = "BloodBank.donationCOunt";
 
 	@Basic( optional = false)
@@ -48,7 +56,7 @@ public abstract class BloodBank extends PojoBase implements Serializable {
 
 	@OneToMany( cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "bank")
 //	@JoinColumn( name = "bank_id", referencedColumnName = "bank_id")
-	private Set< BloodDonation> donations;
+	private Set< BloodDonation> donations = new HashSet<>();
 
 	@Transient
 	private boolean isPublic;

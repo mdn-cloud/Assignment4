@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import bloodbank.ejb.BloodBankService;
-import bloodbank.entity.BloodBank;
+import bloodbank.entity.DonationRecord;
 
-public class BloodBankSerializer extends StdSerializer< BloodBank> implements Serializable {
+public class DonationRecordSerializer extends StdSerializer< DonationRecord> implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	
@@ -32,28 +32,30 @@ public class BloodBankSerializer extends StdSerializer< BloodBank> implements Se
     @EJB
     protected BloodBankService service;
 
-	public BloodBankSerializer() {
-		this( null);
+	public DonationRecordSerializer() {
+		this(null);
 	}
 
-	public BloodBankSerializer( Class< BloodBank> t) {
-		super( t);
+	public DonationRecordSerializer( Class< DonationRecord> t) {
+		super(t);
 	}
 
-	/**
-	 * This is to prevent back and forth serialization between Many to Many relations.<br>
-	 * This is done by setting the relation to null.
-	 */
 	@Override
-	public void serialize( BloodBank original, JsonGenerator generator, SerializerProvider provider)
+	public void serialize( DonationRecord original, JsonGenerator generator, SerializerProvider provider)
 			throws IOException {
 		LOG.trace("serializeing={}",original);
 		generator.writeStartObject();
 		generator.writeNumberField( "id", original.getId());
-		generator.writeStringField( "name", original.getName());
-		int count = original.getDonations()==null?0:original.getDonations().size();
-		generator.writeNumberField( "donation_count", count);
-		generator.writeBooleanField( "is_public", original.isPublic());
+		int personId = original.getOwner().getId();
+		generator.writeNumberField( "owner_id", personId);
+		
+		if(original.getDonation() != null) { // BloodDonations are optional so need to check
+			int donationId = original.getDonation().getId();
+			generator.writeNumberField( "donation_id", donationId);
+		}
+		
+		boolean isTested = original.getTested() == 1;
+		generator.writeBooleanField("is_tested", isTested);
 		generator.writeObjectField( "created", original.getCreated());
 		generator.writeObjectField( "updated", original.getUpdated());
 		generator.writeNumberField( "version", original.getVersion());
