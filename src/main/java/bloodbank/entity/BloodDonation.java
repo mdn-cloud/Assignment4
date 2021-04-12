@@ -18,15 +18,26 @@ import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import bloodbank.rest.serializer.BloodBankSerializer;
+import bloodbank.rest.serializer.BloodDonationSerializer;
+
 /**
  * The persistent class for the blood_donation database table.
  */
 @Entity
 @Table( name = "blood_donation")
-@NamedQuery( name = "BloodDonation.findAll", query = "SELECT b FROM BloodDonation b")
+@NamedQuery( name = BloodDonation.ALL_BLOOD_DONATIONS_QUERY_NAME, query = "SELECT b FROM BloodDonation b left JOIN FETCH b.bank")
+@NamedQuery( name = BloodDonation.GET_BLOOD_DONATION_BY_ID_QUERY_NAME, query = "SELECT b FROM BloodDonation b left JOIN FETCH b.bank where b.id = :param1")
 @AttributeOverride( name = "id", column = @Column( name = "donation_id"))
+@JsonSerialize(using = BloodDonationSerializer.class)
 public class BloodDonation extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
+	
+	public static final String ALL_BLOOD_DONATIONS_QUERY_NAME = "BloodDonation.findAll";
+	public static final String GET_BLOOD_DONATION_BY_ID_QUERY_NAME = "BloodDonation.findById";
 
 	@ManyToOne( optional = false, cascade = { CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.LAZY)
 	@JoinColumn( name = "bank_id", referencedColumnName = "bank_id")
@@ -43,6 +54,7 @@ public class BloodDonation extends PojoBase implements Serializable {
 	@Embedded
 	private BloodType bloodType;
 
+	@JsonIgnore
 	public BloodBank getBank() {
 		return bank;
 	}

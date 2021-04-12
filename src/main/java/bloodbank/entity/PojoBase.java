@@ -24,6 +24,8 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Abstract class that is base of (class) hierarchy for all @Entity classes
  */
@@ -78,6 +80,7 @@ public abstract class PojoBase implements Serializable {
 		return created;
 	}
 
+	@JsonIgnore
 	public long getCreatedEpochMilli() {
 		return created.toEpochMilli();
 	}
@@ -106,6 +109,7 @@ public abstract class PojoBase implements Serializable {
 		return updated;
 	}
 
+	@JsonIgnore
 	public long getUpdatedEpochMilli() {
 		return updated.toEpochMilli();
 	}

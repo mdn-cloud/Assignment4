@@ -10,6 +10,18 @@
 INSERT INTO `address` VALUES (1,'123','abcd Dr.W','ottawa','ON','CA','A1B2C3',1617265125548,1617265125548,0);
 
 --
+-- Dumping data for table `person`
+--
+
+INSERT INTO `person` VALUES (1,'Shawn','Emami',1617265125540,1617265125540,0);
+
+--
+-- Dumping data for table `phone`
+--
+
+INSERT INTO `phone` VALUES (1,'0','234','5678900',1617265125545,1617265125545,0),(2,'1','432','0098765',1617265125561,1617265125561,0);
+
+--
 -- Dumping data for table `blood_bank`
 --
 
@@ -32,18 +44,6 @@ INSERT INTO `contact` VALUES (1,1,'Home','test@test.com',1,1617265125540,1617265
 --
 
 INSERT INTO `donation_record` VALUES (1,1,2,_binary '',1617265125572,1617265125572,0),(2,1,2,_binary '\0',1617265125576,1617265125576,0),(3,1,1,_binary '',1617265125577,1617265125577,0);
-
---
--- Dumping data for table `person`
---
-
-INSERT INTO `person` VALUES (1,'Shawn','Emami',1617265125540,1617265125540,0);
-
---
--- Dumping data for table `phone`
---
-
-INSERT INTO `phone` VALUES (1,'0','234','5678900',1617265125545,1617265125545,0),(2,'1','432','0098765',1617265125561,1617265125561,0);
 
 --
 -- Dumping data for table `role`

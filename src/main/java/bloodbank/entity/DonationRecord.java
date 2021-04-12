@@ -16,18 +16,24 @@ import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import bloodbank.rest.serializer.DonationRecordSerializer;
+
 /**
  * The persistent class for the donation_record database table.
  * 
  */
 @Entity
 @Table( name = "donation_record")
-@NamedQuery( name = DonationRecord.ALL_RECORDS_QUERY_NAME, query = "SELECT d FROM DonationRecord d")
+@NamedQuery( name = DonationRecord.ALL_RECORDS_QUERY_NAME, query = "SELECT d FROM DonationRecord d left JOIN FETCH d.owner")
+@NamedQuery( name = DonationRecord.GET_DONATION_RECORD_BY_ID_QUERY_NAME, query = "SELECT d FROM DonationRecord d left JOIN FETCH d.owner where d.id = :param1")
 @AttributeOverride( name = "id", column = @Column( name = "record_id"))
+@JsonSerialize(using = DonationRecordSerializer.class)
 public class DonationRecord extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	public static final String ALL_RECORDS_QUERY_NAME = "DonationRecord.findAll";
+	public static final String GET_DONATION_RECORD_BY_ID_QUERY_NAME = "DonationRecord.findById";
 
 	@OneToOne( fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
 	@JoinColumn( name = "donation_id", referencedColumnName = "donation_id")

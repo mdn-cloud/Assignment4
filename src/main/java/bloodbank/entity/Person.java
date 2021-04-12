@@ -1,5 +1,6 @@
 package bloodbank.entity;
 
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
@@ -17,19 +18,25 @@ import javax.persistence.Table;
 import org.hibernate.Hibernate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import bloodbank.rest.serializer.PersonSerializer;
 
 /**
  * The persistent class for the person database table.
  */
 @Entity
 @Table( name = "person")
-@NamedQuery( name = Person.ALL_PERSONS_QUERY_NAME, query = "SELECT p FROM Person p")
+@NamedQuery( name = Person.ALL_PERSONS_QUERY_NAME, query = "SELECT distinct p FROM Person p left JOIN FETCH p.donations")
+@NamedQuery(name = Person.GET_PERSON_BY_ID_QUERY_NAME, query = "SELECT distinct p FROM Person p left JOIN FETCH p.donations WHERE p.id = :param1")
 //@AttributeOverride( name = "id", column = @Column( name = "id"))
 //no need for AttributeOverride as person is column is called id as well.
+@JsonSerialize(using = PersonSerializer.class)
 public class Person extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	public static final String ALL_PERSONS_QUERY_NAME = "Person.findAll";
+	public static final String GET_PERSON_BY_ID_QUERY_NAME = "Person.findById";
 
 	@Basic( optional = false)
 	@Column( name = "first_name", nullable = false, length = 50)
@@ -63,7 +70,6 @@ public class Person extends PojoBase implements Serializable {
 		this.lastName = lastName;
 	}
 
-	@JsonIgnore
 	public Set< DonationRecord> getDonations() {
 		return donations;
 	}
