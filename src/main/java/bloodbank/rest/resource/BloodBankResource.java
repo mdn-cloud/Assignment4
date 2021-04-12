@@ -74,7 +74,8 @@ public class BloodBankResource {
 			response = Response.status(Status.CONFLICT).entity(errorResponse).build();
 		} else {
 			BloodBank newBloodBankWithIdTimestamps = service.persistEntity( newBloodBank);
-			response = Response.ok( newBloodBankWithIdTimestamps).build();
+			response = newBloodBankWithIdTimestamps != null ? Response.ok( newBloodBankWithIdTimestamps).build()
+					: Response.status(Status.BAD_REQUEST).entity("Blood Bank data missing or has wrong format.").build();
 		}
 		return response;
 	}

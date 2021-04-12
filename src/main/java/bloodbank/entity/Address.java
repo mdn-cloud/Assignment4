@@ -26,7 +26,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table( name = "address")
 @NamedQuery( name = Address.ALL_ADRESSES_QUERY_NAME, query = "SELECT a FROM Address a")
 @NamedQuery( name = Address.GET_ADDRESS_BY_ID_QUERY_NAME, query = "SELECT a FROM Address a where a.id = :param1")
-@NamedQuery( name = Address.IS_DUPLICATE_QUERY_NAME, query = "SELECT count(a) FROM Address a where a.zipcode = :param1")
+@NamedQuery( name = Address.IS_DUPLICATE_QUERY_NAME, 
+	query = "SELECT count(a) FROM Address a where a.zipcode = :param1 and a.street = :param2 and a.streetNumber = :param3")
 @AttributeOverride( name = "id", column = @Column( name = "address_id"))
 public class Address extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;

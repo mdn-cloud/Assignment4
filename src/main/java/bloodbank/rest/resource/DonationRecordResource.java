@@ -6,7 +6,6 @@
  */
 package bloodbank.rest.resource;
 
-import static bloodbank.entity.Person.GET_PERSON_BY_ID_QUERY_NAME;
 import static bloodbank.utility.MyConstants.ADMIN_ROLE;
 import static bloodbank.utility.MyConstants.DONATION_RECORD_RESOURCE_NAME;
 import static bloodbank.utility.MyConstants.RESOURCE_PATH_ID_ELEMENT;

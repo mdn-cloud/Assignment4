@@ -86,6 +86,14 @@ public class BloodBankService implements Serializable {
     	return duplicateQuery.getSingleResult() != 0;			
     }
     
+    public boolean isAddressDuplicated(Address address) {
+    	TypedQuery<Long> duplicateQuery = em.createNamedQuery(Address.IS_DUPLICATE_QUERY_NAME, Long.class);
+    	duplicateQuery.setParameter(PARAM1, address.getZipcode());	
+    	duplicateQuery.setParameter(PARAM2, address.getStreet());	
+    	duplicateQuery.setParameter(PARAM3, address.getStreetNumber());	
+    	return duplicateQuery.getSingleResult() != 0;			
+    }
+    
     public boolean isPhoneDuplicated(Phone phone) {
     	TypedQuery<Long> duplicateQuery = em.createNamedQuery(Phone.IS_DUPLICATE_QUERY_NAME, Long.class);
     	duplicateQuery.setParameter(PARAM1, phone.getCountryCode());	
@@ -120,7 +128,6 @@ public class BloodBankService implements Serializable {
     public <T> boolean deleteEntity(int id, String getByIdQueryName, Class<T> entityType) {
         T entity = getById(id, getByIdQueryName, entityType);
         if (entity != null) {
-//            em.refresh(entity);
             em.remove(entity);
             return true;
         } else {
@@ -153,38 +160,34 @@ public class BloodBankService implements Serializable {
     }
     
     @Transactional
-    public void buildUserForNewPerson(Person newPerson) {
-        SecurityUser userForNewPerson = new SecurityUser();
-        userForNewPerson.setUsername(
-            DEFAULT_USER_PREFIX + "_" + newPerson.getFirstName() + "." + newPerson.getLastName());
-        Map<String, String> pbAndjProperties = new HashMap<>();
-        pbAndjProperties.put(PROPERTY_ALGORITHM, DEFAULT_PROPERTY_ALGORITHM);
-        pbAndjProperties.put(PROPERTY_ITERATIONS, DEFAULT_PROPERTY_ITERATIONS);
-        pbAndjProperties.put(PROPERTY_SALTSIZE, DEFAULT_SALT_SIZE);
-        pbAndjProperties.put(PROPERTY_KEYSIZE, DEFAULT_KEY_SIZE);
-        pbAndjPasswordHash.initialize(pbAndjProperties);
-        String pwHash = pbAndjPasswordHash.generate(DEFAULT_USER_PASSWORD.toCharArray());
-        userForNewPerson.setPwHash(pwHash);
-        userForNewPerson.setPerson(newPerson);
-        SecurityRole userRole = em.createNamedQuery(ROLE_BY_NAME_QUERY, SecurityRole.class)
-            .setParameter(PARAM1, USER_ROLE).getSingleResult();
-        
-        userForNewPerson.getRoles().add(userRole);
-        userRole.getUsers().add(userForNewPerson);
+    public Person buildUserForNewPerson(Person newPerson) {
+    	try {
+    		 SecurityUser userForNewPerson = new SecurityUser();
+    	        userForNewPerson.setUsername(
+    	            DEFAULT_USER_PREFIX + "_" + newPerson.getFirstName() + "." + newPerson.getLastName());
+    	        Map<String, String> pbAndjProperties = new HashMap<>();
+    	        pbAndjProperties.put(PROPERTY_ALGORITHM, DEFAULT_PROPERTY_ALGORITHM);
+    	        pbAndjProperties.put(PROPERTY_ITERATIONS, DEFAULT_PROPERTY_ITERATIONS);
+    	        pbAndjProperties.put(PROPERTY_SALTSIZE, DEFAULT_SALT_SIZE);
+    	        pbAndjProperties.put(PROPERTY_KEYSIZE, DEFAULT_KEY_SIZE);
+    	        pbAndjPasswordHash.initialize(pbAndjProperties);
+    	        String pwHash = pbAndjPasswordHash.generate(DEFAULT_USER_PASSWORD.toCharArray());
+    	        userForNewPerson.setPwHash(pwHash);
+    	        userForNewPerson.setPerson(newPerson);
+    	        SecurityRole userRole = em.createNamedQuery(ROLE_BY_NAME_QUERY, SecurityRole.class)
+    	            .setParameter(PARAM1, USER_ROLE).getSingleResult();
+    	        
+    	        userForNewPerson.getRoles().add(userRole);
+    	        userRole.getUsers().add(userForNewPerson);
 
-        em.persist(userForNewPerson);
+    	        em.persist(userForNewPerson);
+    	        return newPerson;
+    	        
+    	} catch (Exception ex) {
+    		return null;
+    	}
     }
 
-    @Transactional
-    public Person setAddressFor(int id, Address newAddress) {
-//    	Person personToUpdate = getPersonId(id);
-//    	Contact []contacts =  (Contact[]) personToUpdate.getContacts().toArray();
-//    	contacts[0].setAddress(newAddress);
-//    	em.merge(contacts);
-//    	return personToUpdate;
-    	return null;
-    }
-    
     @Transactional
     public boolean deletePersonById(int id) {
         Person person = getById(id, GET_PERSON_BY_ID_QUERY_NAME, Person.class);

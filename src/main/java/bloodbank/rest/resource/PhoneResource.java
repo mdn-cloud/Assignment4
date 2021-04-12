@@ -44,7 +44,7 @@ public class PhoneResource {
 	protected SecurityContext sc;
 
 	@GET
-    @RolesAllowed({ADMIN_ROLE})
+    @RolesAllowed({ADMIN_ROLE, USER_ROLE})
 	public Response getPhones() {
 		List< Phone> phones = service.getAll(Phone.ALL_PHONES_QUERY_NAME, Phone.class);
 		Response response = Response.ok( phones).build();
@@ -73,7 +73,8 @@ public class PhoneResource {
 			response = Response.status(Status.CONFLICT).entity(errorResponse).build();
 		} else {
 			Phone newPhoneWithIdTimestamps = service.persistEntity( newPhone);
-			response = Response.ok( newPhoneWithIdTimestamps).build();
+			response = newPhoneWithIdTimestamps != null ? Response.ok( newPhoneWithIdTimestamps).build()
+					: Response.status(Status.BAD_REQUEST).entity("Phone data missing or has wrong format.").build();
 		}
 		return response;
 	}

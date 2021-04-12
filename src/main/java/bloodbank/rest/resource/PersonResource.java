@@ -8,7 +8,6 @@ package bloodbank.rest.resource;
 
 import static bloodbank.entity.Person.GET_PERSON_BY_ID_QUERY_NAME;
 import static bloodbank.utility.MyConstants.ADMIN_ROLE;
-import static bloodbank.utility.MyConstants.CUSTOMER_ADDRESS_RESOURCE_PATH;
 import static bloodbank.utility.MyConstants.PERSON_RESOURCE_NAME;
 import static bloodbank.utility.MyConstants.RESOURCE_PATH_ID_ELEMENT;
 import static bloodbank.utility.MyConstants.RESOURCE_PATH_ID_PATH;
@@ -26,7 +25,6 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -38,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.glassfish.soteria.WrappingCallerPrincipal;
 
 import bloodbank.ejb.BloodBankService;
-import bloodbank.entity.Address;
+import bloodbank.entity.BloodDonation;
 import bloodbank.entity.DonationRecord;
 import bloodbank.entity.Person;
 import bloodbank.entity.SecurityUser;
@@ -95,15 +93,16 @@ public class PersonResource {
 	public Response addPerson( Person newPerson) {
 		Response response = null;
 		// build a SecurityUser linked to the new person
-		service.buildUserForNewPerson( newPerson);
-		response = Response.ok( newPerson).build();
+		Person persistedPerson = service.buildUserForNewPerson( newPerson);		
+		response = persistedPerson != null ? Response.ok( persistedPerson).build()
+				: Response.status(Status.BAD_REQUEST).entity("Person data missing or has wrong format.").build();
 		return response;
 	}
 	
 	@POST
 	@RolesAllowed( { ADMIN_ROLE })
 	@Path("/{id}/donationRecord")
-	public Response addBloodBank(@PathParam( RESOURCE_PATH_ID_ELEMENT) int personId, DonationRecord newDonationRecord) {
+	public Response addDonationRecord(@PathParam( RESOURCE_PATH_ID_ELEMENT) int personId, DonationRecord newDonationRecord) {
 		Response response = null;
 		Person person = service.getById(personId, GET_PERSON_BY_ID_QUERY_NAME, Person.class);
 		if(person != null) {
@@ -117,17 +116,36 @@ public class PersonResource {
 		
 		return response;
 	}
-
-	@PUT
+	
+	@POST
 	@RolesAllowed( { ADMIN_ROLE })
-	@Path( CUSTOMER_ADDRESS_RESOURCE_PATH)
-	public Response addAddressForPerson( @PathParam( RESOURCE_PATH_ID_ELEMENT) int id, Address newAddress) {
+	@Path("/{personId}/bloodDonation/{bloodDonationId}/donationRecord")
+	public Response addDonationRecordWithBloodDonation(@PathParam("personId") int personId, @PathParam("bloodDonationId") int bloodDonationId,
+			DonationRecord newDonationRecord) {
 		Response response = null;
-		Person updatedPerson = service.setAddressFor( id, newAddress);
-		response = Response.ok( updatedPerson).build();
+		Person person = service.getById(personId, GET_PERSON_BY_ID_QUERY_NAME, Person.class);
+		BloodDonation bloodDonation = service.getById(bloodDonationId, BloodDonation.GET_BLOOD_DONATION_BY_ID_QUERY_NAME, BloodDonation.class);
+		
+		if(person == null) {
+			response = Response.status(Status.NOT_FOUND).entity("Person does not exist. Could not add donation record.").build();
+			
+		} else if(bloodDonation == null) {
+			response = Response.status(Status.NOT_FOUND).entity("Blood Donation does not exist. Could not add donation record.").build();
+			
+		} else if(bloodDonation.getRecord() != null) {
+			response = Response.status(Status.CONFLICT).entity("Blood Donation already has a donation record. Could not add donation record.").build();
+		} else {
+			newDonationRecord.setOwner(person);
+			person.getDonations().add(newDonationRecord);
+			newDonationRecord.setDonation(bloodDonation);
+			
+			service.updateEntity(personId, person, Person.GET_PERSON_BY_ID_QUERY_NAME, Person.class);
+			response = Response.ok(person).build();
+		}
+		
 		return response;
 	}
-	
+
 	@DELETE
 	@RolesAllowed( { ADMIN_ROLE })
 	@Path( RESOURCE_PATH_ID_PATH)

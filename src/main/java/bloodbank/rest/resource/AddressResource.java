@@ -44,7 +44,7 @@ public class AddressResource {
 	protected SecurityContext sc;
 
 	@GET
-    @RolesAllowed({ADMIN_ROLE})
+    @RolesAllowed({ADMIN_ROLE, USER_ROLE})
 	public Response getAddresss() {
 		List< Address> addresss = service.getAll(Address.ALL_ADRESSES_QUERY_NAME, Address.class);
 		Response response = Response.ok( addresss).build();
@@ -68,12 +68,13 @@ public class AddressResource {
 	@RolesAllowed( { ADMIN_ROLE })
 	public Response addAddress( Address newAddress) {
 		Response response = null;
-		if(service.isDuplicated(Address.IS_DUPLICATE_QUERY_NAME, newAddress.getZipcode())) {
+		if(service.isAddressDuplicated(newAddress)) {
 			HttpErrorResponse errorResponse = new HttpErrorResponse(Status.CONFLICT.getStatusCode(), "Address Already Exists");
 			response = Response.status(Status.CONFLICT).entity(errorResponse).build();
 		} else {
 			Address newAddressWithIdTimestamps = service.persistEntity( newAddress);
-			response = Response.ok( newAddressWithIdTimestamps).build();
+			response = newAddressWithIdTimestamps != null ? Response.ok( newAddressWithIdTimestamps).build()
+					: Response.status(Status.BAD_REQUEST).entity("Address data missing or has wrong format.").build();
 		}
 		return response;
 	}
