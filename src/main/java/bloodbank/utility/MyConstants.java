@@ -61,6 +61,8 @@ public interface MyConstants {
     public static final String DEFAULT_ADMIN_USER_PASSWORD = "admin";
     public static final String DEFAULT_USER_PREFIX = "user";
     public static final String DEFAULT_USER_PASSWORD = "password";
+    public static final String CST_USER = "cst8288";
+    public static final String CST_USER_PASSWORD = "8288";
 
     // the nickname of this Hash algorithm is 'PBandJ' (Peanut-Butter-And-Jam, like the sandwich!)
     // I would like to use the constants from org.glassfish.soteria.identitystores.hash.Pbkdf2PasswordHashImpl

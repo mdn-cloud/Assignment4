@@ -197,6 +197,7 @@ public class BloodBankService implements Serializable {
                 .createNamedQuery(USER_FOR_OWNING_PERSON_QUERY, SecurityUser.class)
                 .setParameter(PARAM1, person.getId());
             SecurityUser sUser = findUser.getSingleResult();
+            person.getDonations().forEach((donation) -> em.remove(donation));
             em.remove(sUser);
             em.remove(person);
             return true;
