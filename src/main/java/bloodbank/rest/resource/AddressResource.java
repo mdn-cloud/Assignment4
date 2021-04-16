@@ -2,7 +2,13 @@
  * File: AddressResource.java Course materials (21W) CST 8277
  *
  * @author Shariar (Shawn) Emami
- * @author (original) Mike Norman update by : I. Am. A. Student 040nnnnnnn
+ * @author (original) Mike Norman 
+ * 
+ * update by : Mukta Debnath 
+ * @author Ra'ad Sweidan
+ * @author Mukta Debnath
+ * @author Thanh Nguyen
+ * @author Yves Ferland 
  */
 package bloodbank.rest.resource;
 

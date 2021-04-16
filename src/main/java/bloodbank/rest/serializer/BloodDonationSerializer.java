@@ -5,6 +5,12 @@
  * @date Mar 31, 2021
  * @author Mike Norman
  * @date 2020 10
+ * 
+ * Update by : Thanh Nguyen
+ * @author Ra'ad Sweidan
+ * @author Mukta Debnath
+ * @author Thanh Nguyen
+ * @author Yves Ferland
  */
 package bloodbank.rest.serializer;
 

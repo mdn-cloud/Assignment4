@@ -5,7 +5,11 @@
  * @author Shariar (Shawn) Emami
  * @author (original) Mike Norman
  * 
- * update by : I. Am. A. Student 040nnnnnnn
+ * update by : Ra'ad Sweidan 
+ * @author Ra'ad Sweidan
+ * @author Mukta Debnath
+ * @author Thanh Nguyen
+ * @author Yves Ferland 
  *
  */
 package bloodbank.ejb;
