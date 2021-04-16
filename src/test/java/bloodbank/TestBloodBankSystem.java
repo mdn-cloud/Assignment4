@@ -6,6 +6,10 @@
  * @date 2020 10
  *
  * (Modified) @author Student Name
+ * @author Ra'ad Sweidan
+ * @author Mukta Debnath
+ * @author Thanh Nguyen
+ * @author Yves Ferland 
  */
 package bloodbank;
 
