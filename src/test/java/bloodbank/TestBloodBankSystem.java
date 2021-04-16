@@ -5,7 +5,7 @@
  *
  * @date 2020 10
  *
- * (Modified) @author Student Name
+ * (Modified)
  * @author Ra'ad Sweidan
  * @author Mukta Debnath
  * @author Thanh Nguyen
